@@ -63,6 +63,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slider_Bottom.setValue(1)
         self.slider_Bottom.setTickInterval(1)
         self.slider_Bottom.setEnabled(False)
+        self.slider_Bottom.valueChanged.connect(self.slidervaluechange)
 
         # Status Bar _ Bottom - Show the current frame number
         self.frameLabel = QtWidgets.QLabel('')
@@ -70,13 +71,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusBar_Bottom = QtWidgets.QStatusBar()
         self.statusBar_Bottom.setFont(QtGui.QFont("Times", 10))
         self.statusBar_Bottom.addPermanentWidget(self.frameLabel)
-        
-        
-        #variables that contain useful information
-        self.video_fps = 30 # usually videos are recorded at 30 fps
-        self.video_lenght = 0 # no information at the moment
-        self.video_name = None # name and location of video file 
-        self.current_frame = 1 # what is the current frame 
+
+        # Definition of Variables
+        self.video_fps = 30  # usually videos are recorded at 30 fps
+        self.video_length = 0  # no information at the moment
+        self.video_name = None  # name and location of video file
+        self.current_frame = 1  # what is the current frame
+
+        self.video_handle = None  # handler that will carry the video information
+        self.timer = QtCore.QTimer()  # controls video playback
 
         # initialize the User Interface
         self.initUI()
@@ -180,18 +183,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # fill the bottom toolbar
         play_action = QtWidgets.QAction('Play', self)
+        play_action.setShortcut('Shift+S')
         play_action.setIcon(QtGui.QIcon('./icons/play-arrow.png'))
-        # play_action.triggered.connect(self.match_iris)
+        play_action.triggered.connect(self.playvideo)
 
         stop_action = QtWidgets.QAction('Stop', self)
+        stop_action.setShortcut('Shift+Z')
         stop_action.setIcon(QtGui.QIcon('./icons/pause.png'))
-        # stop_action.triggered.connect(self.match_iris)
+        stop_action.triggered.connect(self.stopvideo)
 
         fastforward_action = QtWidgets.QAction('Fast Forward', self)
+        fastforward_action.setShortcut('Shift+D')
         fastforward_action.setIcon(QtGui.QIcon('./icons/fast-forward.png'))
         # fastforward_action.triggered.connect(self.match_iris)
 
         rewind_action = QtWidgets.QAction('Rewind', self)
+        rewind_action.setShortcut('Shift+A')
         rewind_action.setIcon(QtGui.QIcon('./icons/rewind.png'))
         # rewind_action.triggered.connect(self.match_iris)
 
@@ -242,22 +249,81 @@ class MainWindow(QtWidgets.QMainWindow):
         if not name:
             pass
         else:
+            name = os.path.normpath(name)
+            # Remove previous video handlers to avoid taking odd frames
+            self.video_handle = None
+            # change window name to match the file name
+            self.setWindowTitle('Video Processing - ' + name.split(os.path.sep)[-1])
+
             # user provided a video, open it using OpenCV
-            videocap = cv2.VideoCapture(name) # read the video
-            success,image = videocap.read() # get the first frame
+            self.video_handle = cv2.VideoCapture(name)  # read the video
+            success, image = self.video_handle.read()  # get the first frame
             
-            if success: #if the frame exists then show the image
+            if success:  # if the frame exists then show the image
                 self.displayImage._opencvimage = image             
                 self.displayImage.update_view()
-                num_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
-                self.video_lenght = num_frames
-                video_fps = int(videocap.get(cv2.CAP_PROP_FPS))
+                num_frames = int(self.video_handle.get(cv2.CAP_PROP_FRAME_COUNT))
+                self.video_length = num_frames
+                video_fps = int(self.video_handle.get(cv2.CAP_PROP_FPS))
                 self.video_fps = video_fps
-                
-                self.frameLabel.setText('Frame :'+str(self.current_frame)+'/'+str(self.video_lenght))                    
-                
-            videocap.release()
 
+                # put the frame information in the app
+                self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_length))
+                # update the slider
+                self.slider_Bottom.setMinimum(1)
+                self.slider_Bottom.setMaximum(self.video_length)
+                self.slider_Bottom.blockSignals(True)
+                self.slider_Bottom.setValue(1)
+                self.slider_Bottom.blockSignals(False)
+                self.slider_Bottom.setEnabled(True)
+            # videocap.release()
+
+    def playvideo(self):
+        # verify that the video handler is not empty
+        if self.video_handle is not None:
+            self.timer.timeout.connect(self.nextframefunction)
+            self.timer.start(1000.0/self.video_fps)
+
+    def nextframefunction(self):
+        # verify that we are not in the last frame
+        if self.current_frame <= self.video_length - 1:
+            success, image = self.video_handle.read()
+            if success:
+                # if the frame exists then show the image
+                self.displayImage._opencvimage = image
+                self.displayImage.update_view()
+                # update the frame number at the bottom of the app
+                self.frameLabel.setText('Frame : ' + str(int(self.current_frame)+1) + '/' + str(self.video_length))
+                # update the slider
+                self.slider_Bottom.blockSignals(True)
+                self.slider_Bottom.setValue(self.current_frame + 1)
+                self.slider_Bottom.blockSignals(False)
+                # update frame number
+                self.current_frame += 1.
+            else: # if it doens't then stop the time
+                self.timer.stop()
+
+        else:  # reached the end of the video
+            self.timer.stop()
+
+    def stopvideo(self):
+        # stop video if video is playing
+        if self.timer.isActive():  # verify is the video is running
+            # activate slider and stop playback
+            self.timer.stop()
+
+    def slidervaluechange(self):
+        slider_value = self.slider_Bottom.value()
+        self.video_handle.set(cv2.CAP_PROP_POS_FRAMES, slider_value)
+        success, image = self.video_handle.read()
+        if success:
+            # if the frame exists then show the image
+            self.displayImage._opencvimage = image
+            self.displayImage.update_view()
+            # update the frame number at the bottom of the app
+            self.frameLabel.setText('Frame : ' + str(int(self.current_frame) + 1) + '/' + str(self.video_length))
+            # update frame number
+            self.current_frame = slider_value
 
 
 
