@@ -29,10 +29,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('Video Processing')
         self.background_color = self.palette().color(QtGui.QPalette.Background)
 
-        if os.name is 'posix':  # is a mac or linux
-            scriptDir = os.path.dirname(sys.argv[0])
-        else:  # is a  windows
-            scriptDir = os.getcwd()
+        # if os.name is 'posix':  # is a mac or linux
+        #     scriptDir = os.path.dirname(sys.argv[0])
+        # else:  # is a  windows
+        #     scriptDir = os.getcwd()
 
         # This is the main Window
         self.main_Widget = QtWidgets.QWidget(self)
@@ -70,6 +70,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusBar_Bottom = QtWidgets.QStatusBar()
         self.statusBar_Bottom.setFont(QtGui.QFont("Times", 10))
         self.statusBar_Bottom.addPermanentWidget(self.frameLabel)
+        
+        
+        #variables that contain useful information
+        self.video_fps = 30 # usually videos are recorded at 30 fps
+        self.video_lenght = 0 # no information at the moment
+        self.video_name = None # name and location of video file 
+        self.current_frame = 1 # what is the current frame 
 
         # initialize the User Interface
         self.initUI()
@@ -222,6 +229,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Set the defined layout in the main window
         self.main_Widget.setLayout(layout)
+        
+        self.setGeometry(300, 100, 600, 800)
 
 
     def openvideofile(self):
@@ -234,8 +243,21 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
         else:
             # user provided a video, open it using OpenCV
-            print(name)
-            #capture = cv2.VideoCapture(name)
+            videocap = cv2.VideoCapture(name) # read the video
+            success,image = videocap.read() # get the first frame
+            
+            if success: #if the frame exists then show the image
+                self.displayImage._opencvimage = image             
+                self.displayImage.update_view()
+                num_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+                self.video_lenght = num_frames
+                video_fps = int(videocap.get(cv2.CAP_PROP_FPS))
+                self.video_fps = video_fps
+                
+                self.frameLabel.setText('Frame :'+str(self.current_frame)+'/'+str(self.video_lenght))                    
+                
+            videocap.release()
+
 
 
 
