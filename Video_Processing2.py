@@ -6,7 +6,7 @@ import numpy as np
 from PyQt5 import QtWidgets, QtGui, QtCore
 from multiprocessing import freeze_support
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread
 
 from ImageViewerandProcess import ImageViewer
 
@@ -23,17 +23,37 @@ This file will contain a new app for extracting movement features of videos usin
 """
 
 
+class ThreadReadVideo(QThread):
+    videoframe = pyqtSignal(object)
+
+    def __init__(self, video_handler):
+        super(ThreadReadVideo, self).__init__()
+
+        self.video_handler = video_handler
+        self.video_playback = True
+
+    def run(self):
+
+        while (self.video_playback is True):
+            grabbed, frame = self.video_handler.read()
+            if grabbed:
+                self.videoframe.emit(frame)
+            else:
+                self.video_playback = False
+
+    def stop(self):
+        self.video_playback = False
+
 class VideoHandler:
-    
-    def __init__(self, filename, queuesize = 30):
-        
+    def __init__(self, filename):
+
         self.video_filename = filename
         try:
             self.video_handler = cv2.VideoCapture(self.video_filename)
         except:
             # there was an error reading the file, return
-            # we need to add error codes so that the user can knows what happened 
-            return 
+            # we need to add error codes so that the user can knows what happened
+            return
 
         self.video_length = int(self.video_handler.get(cv2.CAP_PROP_FRAME_COUNT))
         self.video_fps = int(self.video_handler.get(cv2.CAP_PROP_FPS))
@@ -42,47 +62,81 @@ class VideoHandler:
         self.video_landmarks_filename = None
         self.video_landmarks = None
 
-        # the video loading will be performed in a different thread and then submitted to the main thread
-        self.Q = Queue(maxsize=queuesize)
-        self.Thread = Thread(target=self.update, args=())
-        self.Thread.daemon = True
-        self.stopped = False
+    def readfirstframe(self):
+        grabbed, frame = self.video_handler.read()
+        if grabbed:
+            return frame
 
-    def start(self):
-        #t = Thread(target=self.update, args=())
-        #t.daemon = True
-        #t.start()
-        self.Thread.start()
-        return self
-        
-    def update(self):
-        # read the video stream and put them in the queue
-        while True:
-            
-            if self.stopped:
-                return 
-            
-            if not self.Q.full():
-                
-                grabbed, frame = self.video_handler.read()
-                
-                if not grabbed:
-                    self.stop()
-                    return
-                
-                self.Q.put(frame)
-                
-    def read(self):
-        # return the next frame in the queue
-        return self.Q.get()
-    
-    def more(self):
-        # returns True if there are frames in the Queue 
-        return self.Q.qsize() > 0
-    
-    def stop(self):
-        # the thread should stop
-        self.stopped = True
+    pyqtSlot(object)
+    def emitimage(self, image):
+        return image
+
+    def playvideo(self):
+
+
+
+
+
+
+# class VideoHandler:
+#     def __init__(self, filename, queuesize=30):
+#
+#         self.video_filename = filename
+#         try:
+#             self.video_handler = cv2.VideoCapture(self.video_filename)
+#         except:
+#             # there was an error reading the file, return
+#             # we need to add error codes so that the user can knows what happened
+#             return
+#
+#         self.video_length = int(self.video_handler.get(cv2.CAP_PROP_FRAME_COUNT))
+#         self.video_fps = int(self.video_handler.get(cv2.CAP_PROP_FPS))
+#         self.playbackspeed = self.video_fps
+#         self.video_exist_landmarks = None
+#         self.video_landmarks_filename = None
+#         self.video_landmarks = None
+#
+#         # the video loading will be performed in a different thread and then submitted to the main thread
+#         self.Q = Queue(maxsize=queuesize)
+#         self.Thread = Thread(target=self.update, args=())
+#         self.Thread.daemon = True
+#         self.stopped = False
+#
+#     def start(self):
+#         #t = Thread(target=self.update, args=())
+#         #t.daemon = True
+#         #t.start()
+#         self.Thread.start()
+#         return self
+#
+#     def update(self):
+#         # read the video stream and put them in the queue
+#         while True:
+#
+#             if self.stopped:
+#                 return
+#
+#             if not self.Q.full():
+#
+#                 grabbed, frame = self.video_handler.read()
+#
+#                 if not grabbed:
+#                     self.stop()
+#                     return
+#
+#                 self.Q.put(frame)
+#
+#     def read(self):
+#         # return the next frame in the queue
+#         return self.Q.get()
+#
+#     def more(self):
+#         # returns True if there are frames in the Queue
+#         return self.Q.qsize() > 0
+#
+#     def stop(self):
+#         # the thread should stop
+#         self.stopped = True
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -316,10 +370,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setWindowTitle('Video Processing - ' + name.split(os.path.sep)[-1])
 
             self.video_handler = VideoHandler(name)
-            # wait 200 ms so that the queue can be filled with images 
-            time.sleep(0.2) 
-            self.video_handler.start()
-            image = self.video_handler.read()
+            image = self.video_handler.readfirstframe()
             self.displayImage._opencvimage = image             
             self.displayImage.update_view()
             # update the frame number
@@ -334,7 +385,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.slider_Bottom.blockSignals(False)
             self.slider_Bottom.setEnabled(True)
 
-            self.video_handler.stop()
             
 #            name = os.path.normpath(name)
 #            # Remove previous video handlers to avoid taking odd frames
