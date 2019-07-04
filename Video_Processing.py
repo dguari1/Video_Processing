@@ -10,6 +10,9 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from ImageViewerandProcess import ImageViewer
 
+from queue import Queue
+from threading import Thread
+import time
 
 """
 Created on 2019-06-27
@@ -18,6 +21,70 @@ Created on 2019-06-27
 This file will contain a new app for extracting movement features of videos using machine learning 
 
 """
+
+
+class VideoHandler:
+    
+    def __init__(self, filename,queueSize = 30):
+        
+        self.video_filename = filename
+        try :
+            self.video_handler = cv2.VideoCapture(self.video_filename)
+        except:
+            # there was an error reading the file, return
+            # we need to add error codes so that the user can knows what happened 
+            return 
+        
+        
+        self.video_fps = int(self.video_handler.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.video_length = int(self.video_handler.get(cv2.CAP_PROP_FPS))
+        self.video_exist_landmarks = None
+        self.video_landmarks_filename = None
+        self.video_landmarks = None
+        
+        
+        # the video loading will be performed in a different thread and then submitted to the main thread
+        self.Q = Queue(maxsize = queueSize)
+        self.stopped = False
+
+    
+    def start(self):
+        t = Thread(target = self.update, args=())
+        t.daemon =True
+        t.start()
+        return self
+        
+    def update(self):
+        #read the video stram and put them in the queue 
+        while True:
+            
+            if self.stopped:
+                return 
+            
+            if not self.Q.full():
+                
+                grabbed, frame = self.video_handler.read()
+                
+                if not grabbed:
+                    self.stop()
+                    return
+                
+                self.Q.put(frame)
+                
+    def read(self):
+        # return the next frame in the queue
+        return self.Q.get()
+    
+    def more(self):
+        # returns True if there are frames in the Queue 
+        return self.Q.qsize() > 0
+    
+    def stop(self):
+        # the thread should stop
+        self.stopped = True
+        
+                
+        
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -249,34 +316,61 @@ class MainWindow(QtWidgets.QMainWindow):
         if not name:
             pass
         else:
+            
             name = os.path.normpath(name)
-            # Remove previous video handlers to avoid taking odd frames
-            self.video_handle = None
             # change window name to match the file name
             self.setWindowTitle('Video Processing - ' + name.split(os.path.sep)[-1])
-
-            # user provided a video, open it using OpenCV
-            self.video_handle = cv2.VideoCapture(name)  # read the video
-            success, image = self.video_handle.read()  # get the first frame
             
-            if success:  # if the frame exists then show the image
-                self.displayImage._opencvimage = image             
-                self.displayImage.update_view()
-                num_frames = int(self.video_handle.get(cv2.CAP_PROP_FRAME_COUNT))
-                self.video_length = num_frames
-                video_fps = int(self.video_handle.get(cv2.CAP_PROP_FPS))
-                self.video_fps = video_fps
-
-                # put the frame information in the app
-                self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_length))
-                # update the slider
-                self.slider_Bottom.setMinimum(1)
-                self.slider_Bottom.setMaximum(self.video_length)
-                self.slider_Bottom.blockSignals(True)
-                self.slider_Bottom.setValue(1)
-                self.slider_Bottom.blockSignals(False)
-                self.slider_Bottom.setEnabled(True)
-            # videocap.release()
+            
+            self.video_handler = VideoHandler(name)
+            # wait 200 ms so that the queue can be filled with images 
+            time.sleep(0.2) 
+            self.video_handler.start()
+            image = self.video_handler.read()
+            self.displayImage._opencvimage = image             
+            self.displayImage.update_view()
+            # update the frame number
+            self.current_frame = 1
+            # put the frame information in the app
+            self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_handler.num_frames))
+            # update the slider
+            self.slider_Bottom.setMinimum(1)
+            self.slider_Bottom.setMaximum(self.video_handler.num_frames)
+            self.slider_Bottom.blockSignals(True)
+            self.slider_Bottom.setValue(1)
+            self.slider_Bottom.blockSignals(False)
+            self.slider_Bottom.setEnabled(True)
+            
+            
+            
+#            name = os.path.normpath(name)
+#            # Remove previous video handlers to avoid taking odd frames
+#            self.video_handle = None
+#            # change window name to match the file name
+#            self.setWindowTitle('Video Processing - ' + name.split(os.path.sep)[-1])
+#
+#            # user provided a video, open it using OpenCV
+#            self.video_handle = cv2.VideoCapture(name)  # read the video
+#            success, image = self.video_handle.read()  # get the first frame
+#            
+#            if success:  # if the frame exists then show the image
+#                self.displayImage._opencvimage = image             
+#                self.displayImage.update_view()
+#                num_frames = int(self.video_handle.get(cv2.CAP_PROP_FRAME_COUNT))
+#                self.video_length = num_frames
+#                video_fps = int(self.video_handle.get(cv2.CAP_PROP_FPS))
+#                self.video_fps = video_fps
+#
+#                # put the frame information in the app
+#                self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_length))
+#                # update the slider
+#                self.slider_Bottom.setMinimum(1)
+#                self.slider_Bottom.setMaximum(self.video_length)
+#                self.slider_Bottom.blockSignals(True)
+#                self.slider_Bottom.setValue(1)
+#                self.slider_Bottom.blockSignals(False)
+#                self.slider_Bottom.setEnabled(True)
+#            # videocap.release()
 
     def playvideo(self):
         # verify that the video handler is not empty
@@ -285,6 +379,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timer.start(1000.0/self.video_fps)
 
     def nextframefunction(self):
+        
+        
         # verify that we are not in the last frame
         if self.current_frame <= self.video_length - 1:
             success, image = self.video_handle.read()
