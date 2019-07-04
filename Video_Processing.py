@@ -334,7 +334,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.slider_Bottom.blockSignals(False)
             self.slider_Bottom.setEnabled(True)
 
-            self.video_handler.stop()
+            #self.video_handler.stop()
             
 #            name = os.path.normpath(name)
 #            # Remove previous video handlers to avoid taking odd frames
@@ -368,9 +368,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def playvideo(self):
         # verify that the video handler is not empty
         if self.video_handler is not None:
-            self.video_handler.stop()
-            self.video_handler.stopped = False
-            self.video_handler.start()
             self.timer.timeout.connect(self.nextframefunction)
             self.timer.start(1000.0/self.video_handler.playbackspeed)
 
@@ -424,8 +421,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def stopvideo(self):
         # stop video if video is playing
         if self.timer.isActive():  # verify is the video is running
-            # activate slider and stop playback
-            self.video_handler.stop()
             self.timer.stop()
 
 
