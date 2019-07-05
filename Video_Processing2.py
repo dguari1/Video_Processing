@@ -34,7 +34,7 @@ class ThreadReadVideo(QThread):
 
     def run(self):
 
-        while (self.video_playback is True):
+        while self.video_playback is True:
             grabbed, frame = self.video_handler.read()
             if grabbed:
                 self.videoframe.emit(frame)
@@ -62,16 +62,18 @@ class VideoHandler:
         self.video_landmarks_filename = None
         self.video_landmarks = None
 
-    def readfirstframe(self):
-        grabbed, frame = self.video_handler.read()
-        if grabbed:
-            return frame
-
     pyqtSlot(object)
     def emitimage(self, image):
         return image
 
     def playvideo(self):
+
+        th = ThreadReadVideo(self.video_handler)
+        th.videoframe.connect(self.emitimage)
+        th.start()
+
+
+
 
 
 
@@ -369,21 +371,21 @@ class MainWindow(QtWidgets.QMainWindow):
             # change window name to match the file name
             self.setWindowTitle('Video Processing - ' + name.split(os.path.sep)[-1])
 
-            self.video_handler = VideoHandler(name)
-            image = self.video_handler.readfirstframe()
-            self.displayImage._opencvimage = image             
-            self.displayImage.update_view()
-            # update the frame number
-            self.current_frame = 0
-            # put the frame information in the app
-            self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_handler.video_length))
-            # update the slider
-            self.slider_Bottom.setMinimum(1)
-            self.slider_Bottom.setMaximum(self.video_handler.video_length)
-            self.slider_Bottom.blockSignals(True)
-            self.slider_Bottom.setValue(1)
-            self.slider_Bottom.blockSignals(False)
-            self.slider_Bottom.setEnabled(True)
+            # self.video_handler = VideoHandler(name)
+            # image = self.video_handler.readfirstframe()
+            # self.displayImage._opencvimage = image
+            # self.displayImage.update_view()
+            # # update the frame number
+            # self.current_frame = 0
+            # # put the frame information in the app
+            # self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_handler.video_length))
+            # # update the slider
+            # self.slider_Bottom.setMinimum(1)
+            # self.slider_Bottom.setMaximum(self.video_handler.video_length)
+            # self.slider_Bottom.blockSignals(True)
+            # self.slider_Bottom.setValue(1)
+            # self.slider_Bottom.blockSignals(False)
+            # self.slider_Bottom.setEnabled(True)
 
             
 #            name = os.path.normpath(name)
@@ -393,36 +395,36 @@ class MainWindow(QtWidgets.QMainWindow):
 #            self.setWindowTitle('Video Processing - ' + name.split(os.path.sep)[-1])
 #
 #            # user provided a video, open it using OpenCV
-#            self.video_handle = cv2.VideoCapture(name)  # read the video
-#            success, image = self.video_handle.read()  # get the first frame
-#            
-#            if success:  # if the frame exists then show the image
-#                self.displayImage._opencvimage = image             
-#                self.displayImage.update_view()
-#                num_frames = int(self.video_handle.get(cv2.CAP_PROP_FRAME_COUNT))
-#                self.video_length = num_frames
-#                video_fps = int(self.video_handle.get(cv2.CAP_PROP_FPS))
-#                self.video_fps = video_fps
-#
-#                # put the frame information in the app
-#                self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_length))
-#                # update the slider
-#                self.slider_Bottom.setMinimum(1)
-#                self.slider_Bottom.setMaximum(self.video_length)
-#                self.slider_Bottom.blockSignals(True)
-#                self.slider_Bottom.setValue(1)
-#                self.slider_Bottom.blockSignals(False)
-#                self.slider_Bottom.setEnabled(True)
-#            # videocap.release()
+        video_handler = cv2.VideoCapture(name)  # read the video
+        success, image = video_handler.read()  # get the first frame
+
+        if success:  # if the frame exists then show the image
+            self.displayImage._opencvimage = image
+            self.displayImage.update_view()
+            num_frames = int(video_handler.get(cv2.CAP_PROP_FRAME_COUNT))
+            video_length = num_frames
+            video_fps = int(video_handler.get(cv2.CAP_PROP_FPS))
+            video_fps = video_fps
+            self.current_frame = 0
+            # put the frame information in the app
+            self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(video_length))
+            # update the slider
+            self.slider_Bottom.setMinimum(1)
+            self.slider_Bottom.setMaximum(video_length)
+            self.slider_Bottom.blockSignals(True)
+            self.slider_Bottom.setValue(1)
+            self.slider_Bottom.blockSignals(False)
+            self.slider_Bottom.setEnabled(True)
+        video_handler.release()
 
     def playvideo(self):
         # verify that the video handler is not empty
         if self.video_handler is not None:
-            self.video_handler.stop()
-            self.video_handler.stopped = False
-            self.video_handler.start()
+
             self.timer.timeout.connect(self.nextframefunction)
             self.timer.start(1000.0/self.video_handler.playbackspeed)
+
+
 
     def nextframefunction(self):
         # verify that we are not at the last frame
@@ -446,6 +448,9 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             # reached the end of the video
             self.timer.stop()
+
+    @pyqtSlot
+    def putframe(self,image):
 
 
 
@@ -475,6 +480,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # stop video if video is playing
         if self.timer.isActive():  # verify is the video is running
             # activate slider and stop playback
+
             self.video_handler.stop()
             self.timer.stop()
 
