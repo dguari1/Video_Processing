@@ -154,7 +154,7 @@ class VideoInformation:
         return None
 
 
-class UpdateViewer(QThread):
+class UpdateSlider(QThread):
     """
         Class that will be used to update the video display according to the position of the
         slider. It uses a new thread to load the video frames
@@ -163,25 +163,27 @@ class UpdateViewer(QThread):
     frame_number = pyqtSignal(int)
 
     def __init__(self, video_handler=None, image_viewer=None):
-        super(UpdateViewer, self).__init__()
+        super(UpdateSlider, self).__init__()
 
         self.video_handler = video_handler
         self.image_viewer = image_viewer
+        #self.slider_position = slider_value
 
     @pyqtSlot()
-    def updateviewer(self, frame_number):
-        self.video_handler.video_handler.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
-        success, image = self.video_handler.video_handler.read()
+    def updateviewer(self, slider_value):
+        self.video_handler.set(cv2.CAP_PROP_POS_FRAMES, slider_value)
+        success, image = self.video_handler.read()
         if success:
             # update the view
             self.image_viewer._opencvimage = image
             self.image_viewer.update_view()
             # send back the frame number
-            self.frame_number.emit(frame_number)
+            self.frame_number.emit(slider_value)
         else:
             # do not update the view, and send a None indicating an error
             self.frame_number.emit(None)
 
+        print('que')
         # now inform that is over
         self.finished.emit()
 
@@ -222,14 +224,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # Tool bar __ Bottom  - Play/pause buttons
         self.toolBar_Bottom = QtWidgets.QToolBar(self)
 
-        # # Frame Slider _ Bottom  - Easily move between frames
-        # self.slider_Bottom = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        # self.slider_Bottom.setMinimum(1)
-        # self.slider_Bottom.setMaximum(100)
-        # self.slider_Bottom.setValue(1)
-        # self.slider_Bottom.setTickInterval(1)
-        # self.slider_Bottom.setEnabled(False)
-        # self.slider_Bottom.valueChanged.connect(self.slidervaluechange)
+        # Frame Slider _ Bottom  - Easily move between frames
+        self.slider_Bottom = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.slider_Bottom.setMinimum(1)
+        self.slider_Bottom.setMaximum(100)
+        self.slider_Bottom.setValue(1)
+        self.slider_Bottom.setTickInterval(1)
+        self.slider_Bottom.setEnabled(False)
+        self.slider_Bottom.valueChanged.connect(self.slidervaluechange)
 
         # Status Bar _ Bottom - Show the current frame number
         self.frameLabel = QtWidgets.QLabel('')
@@ -243,7 +245,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.video_name = None  # name and location of video file
         self.current_frame = 0  # what is the current frame
         self.timer = QtCore.QTimer()  # controls video playback
-        self.jump_frames = 1  # number of frames to jump with fastforward or rewind buttons
+
+        # threads used to process data and help in the visualization
+        self.thread_slider = QThread() # no parent
+        self.class_slider = UpdateSlider()
 
         # initialize the User Interface
         self.initUI()
@@ -359,12 +364,12 @@ class MainWindow(QtWidgets.QMainWindow):
         fastforward_action = QtWidgets.QAction('Fast Forward', self)
         fastforward_action.setShortcut('Shift+D')
         fastforward_action.setIcon(QtGui.QIcon('./icons/fast-forward.png'))
-        fastforward_action.triggered.connect(self.fastforward)
+        # fastforward_action.triggered.connect(self.match_iris)
 
         rewind_action = QtWidgets.QAction('Rewind', self)
         rewind_action.setShortcut('Shift+A')
         rewind_action.setIcon(QtGui.QIcon('./icons/rewind.png'))
-        rewind_action.triggered.connect(self.rewind)
+        # rewind_action.triggered.connect(self.match_iris)
 
         # spacer widget for left
         left_spacer = QtWidgets.QWidget(self)
@@ -395,6 +400,7 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.toolBar_Top)
         layout.addWidget(self.displayImage)
         layout.addWidget(self.toolBar_Bottom)
+        layout.addWidget(self.slider_Bottom)
         self.setStatusBar(self.statusBar_Bottom)
 
         # Set the defined layout in the main window
@@ -421,21 +427,48 @@ class MainWindow(QtWidgets.QMainWindow):
             # user provided a video, open it using OpenCV
             self.video_handler = VideoInformation(name)  # read the video
             success, image = self.video_handler.read()  # get the first frame
-            if success:  # if the frame exists then show the image
-                self.updateviewer(image, 1)
 
+            # video was read sucessfully, update this information in the class taking care of the slider
+            self.class_slider.video_handler = self.video_handler.video_handler
+            self.class_slider.image_viewer = self.displayImage
+            
+            if success:  # if the frame exists then show the image
+                self.displayImage._opencvimage = image             
+                self.displayImage.update_view()
+                self.current_frame = 0
+                # put the frame information in the app
+                self.frameLabel.setText('Frame :'+str(int(self.current_frame)+1)+'/'+str(self.video_handler.video_length))
+                # update the slider
+                self.slider_Bottom.setMinimum(1)
+                self.slider_Bottom.setMaximum(self.video_handler.video_length)
+                self.slider_Bottom.blockSignals(True)
+                self.slider_Bottom.setValue(1)
+                self.slider_Bottom.blockSignals(False)
+                self.slider_Bottom.setEnabled(True)
+            # videocap.release()
 
     def playvideo(self):
         # verify that the video handler is not empty
         if self.video_handler is not None:
+        
             self.timer.timeout.connect(self.nextframefunction)
             self.timer.start(1000.0/self.video_handler.playbackspeed)
 
     def nextframefunction(self):
         # verify that we are not at the last frame
-        if self.current_frame < self.video_handler.video_length :
+        if self.current_frame < self.video_handler.video_length - 1:
             success, image = self.video_handler.read()  # get the first frame
-            self.updateviewer(image, self.current_frame+1)
+            self.displayImage._opencvimage = image
+            self.displayImage.update_view()
+            self.current_frame += 1
+            # put the frame information in the app
+            self.frameLabel.setText(
+                'Frame :' + str(int(self.current_frame) + 1) + '/' + str(self.video_handler.video_length))
+            # update the slider
+            self.slider_Bottom.blockSignals(True)
+            self.slider_Bottom.setValue(self.current_frame + 1)
+            self.slider_Bottom.blockSignals(False)
+
         else:
             # reached the end of the video
             self.timer.stop()
@@ -445,82 +478,40 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.timer.isActive():  # verify is the video is running
             self.timer.stop()
 
-    def fastforward(self):
-
+    def slidervaluechange(self):
+        """
+        this functions read the slider, updates the view and then updates the slider according
+        to the frame that is being displayed. Everything occurs in a new thread, so it is usually
+        is slow as firing up and endings threads takes time. However, this is the best solution to
+        prevent the UI from frozen, as the process of reading 'certain' frames from a cv2 video object
+        is very slow and blocking
+        """
         if self.timer.isActive():  # verify is the video is running
             # top video playback before moving slider
             self.timer.stop()
 
-        next_frame = self.current_frame + self.jump_frames
-        if next_frame > self.video_handler.video_length:
-            next_frame = self.video_handler.video_length
-            pass
-        else:
-            self.video_handler.video_handler.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
-            success, image = self.video_handler.read()
-            if success:
-                self.updateviewer(image, next_frame)
-            else:
-                print(next_frame, self.current_frame)
+        # read slider value from slider
+        slider_value = self.slider_Bottom.value()
+        # move the class that updates the viewer and slider to a new thread
+        self.class_slider.moveToThread(self.thread_slider)
+        # star the thread
+        self.thread_slider.start()
+        # update the view, pass the slider position to the function
+        self.thread_slider.started.connect(lambda: self.class_slider.updateviewer(slider_value))
+        # if the view was successfully updated, update the slider position
+        self.class_slider.frame_number.connect(self.updateviwefromslider)
+        # end the thread
+        self.class_slider.finished.connect(self.thread_slider.quit)
 
-    def rewind(self):
-
-        if self.timer.isActive():  # verify is the video is running
-            # top video playback before moving slider
-            self.timer.stop()
-
-        previous_frame = self.current_frame - self.jump_frames
-        if previous_frame < 1:
-            previous_frame = 1
-            pass
-        else:
-            self.video_handler.video_handler.set(cv2.CAP_PROP_POS_FRAMES, previous_frame)
-            success, image = self.video_handler.read()
-            if success:
-                self.updateviewer(image, previous_frame)
-
-    def updateviewer(self, image, frame_number):
-        self.displayImage._opencvimage = image
-        self.displayImage.update_view()
-        self.current_frame = frame_number
-        self.frameLabel.setText(
-            'Frame : ' + str(int(self.current_frame)) + '/' + str(self.video_handler.video_length))
-
-
-    # def slidervaluechange(self):
-    #     """
-    #     this functions read the slider, updates the view and then updates the slider according
-    #     to the frame that is being displayed. Everything occurs in a new thread, so it is usually
-    #     is slow as firing up and endings threads takes time. However, this is the best solution to
-    #     prevent the UI from frozen, as the process of reading 'certain' frames from a cv2 video object
-    #     is very slow and blocking
-    #     """
-    #     if self.timer.isActive():  # verify is the video is running
-    #         # top video playback before moving slider
-    #         self.timer.stop()
-    #
-    #     # read slider value from slider
-    #     slider_value = self.slider_Bottom.value()
-    #     # move the class that updates the viewer and slider to a new thread
-    #     self.class_slider.moveToThread(self.thread_slider)
-    #     # star the thread
-    #     self.thread_slider.start()
-    #     # update the view, pass the slider position to the function
-    #     self.thread_slider.started.connect(lambda: self.class_slider.updateviewer(slider_value))
-    #     # if the view was successfully updated, update the slider position
-    #     self.class_slider.frame_number.connect(self.updateviwefromslider)
-    #     # end the thread
-    #     self.class_slider.finished.connect(self.thread_slider.quit)
-    #
-    # @pyqtSlot(int)
-    # def updateviwefromslider(self, frame_number):
-    #     if frame_number is not None:
-    #         self.current_frame = frame_number - 1
-    #         self.frameLabel.setText(
-    #             'Frame : ' + str(int(self.current_frame) + 1) + '/' + str(self.video_handler.video_length))
-    #         #self.slider_Bottom.blockSignals(True)
-    #         self.slider_Bottom.setValue(int(self.current_frame) + 1)
-    #         #self.slider_Bottom.blockSignals(False)
+    @pyqtSlot(int)
+    def updateviwefromslider(self, frame_number):
+        if frame_number is not None:
+            self.current_frame = frame_number - 1
+            self.frameLabel.setText(
+                'Frame : ' + str(int(self.current_frame) + 1) + '/' + str(self.video_handler.video_length))
+            #self.slider_Bottom.blockSignals(True)
+            self.slider_Bottom.setValue(int(self.current_frame) + 1)
+            #self.slider_Bottom.blockSignals(False)
 
 
 
