@@ -222,14 +222,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # Tool bar __ Bottom  - Play/pause buttons
         self.toolBar_Bottom = QtWidgets.QToolBar(self)
 
-        # # Frame Slider _ Bottom  - Easily move between frames
-        # self.slider_Bottom = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        # self.slider_Bottom.setMinimum(1)
-        # self.slider_Bottom.setMaximum(100)
-        # self.slider_Bottom.setValue(1)
-        # self.slider_Bottom.setTickInterval(1)
-        # self.slider_Bottom.setEnabled(False)
-        # self.slider_Bottom.valueChanged.connect(self.slidervaluechange)
+        # Frame Slider _ Bottom  - Easily move between frames
+        self.slider_Bottom = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.slider_Bottom.setMinimum(1)
+        self.slider_Bottom.setMaximum(100)
+        self.slider_Bottom.setValue(1)
+        self.slider_Bottom.setTickInterval(1)
+        self.slider_Bottom.setEnabled(False)
+        self.slider_Bottom.valueChanged.connect(self.slidervaluechange)
 
         # Status Bar _ Bottom - Show the current frame number
         self.frameLabel = QtWidgets.QLabel('')
@@ -395,6 +395,7 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.toolBar_Top)
         layout.addWidget(self.displayImage)
         layout.addWidget(self.toolBar_Bottom)
+        layout.addWidget(self.slider_Bottom)
         self.setStatusBar(self.statusBar_Bottom)
 
         # Set the defined layout in the main window
@@ -422,7 +423,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.video_handler = VideoInformation(name)  # read the video
             success, image = self.video_handler.read()  # get the first frame
             if success:  # if the frame exists then show the image
-                self.updateviewer(image, 1)
+                self.updateviewer(image, 0)
+                self.slider_Bottom.setMinimum(1)
+                self.slider_Bottom.setMaximum(self.video_handler.video_length)
+                self.slider_Bottom.setEnabled(True)
 
 
     def playvideo(self):
@@ -433,9 +437,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def nextframefunction(self):
         # verify that we are not at the last frame
-        if self.current_frame < self.video_handler.video_length :
-            success, image = self.video_handler.read()  # get the first frame
-            self.updateviewer(image, self.current_frame+1)
+        if self.current_frame <= self.video_handler.video_length :
+            success, image = self.video_handler.read()  # get a new frame
+            if success:
+                frame_number = self.current_frame + 1
+                self.updateviewer(image, frame_number)
         else:
             # reached the end of the video
             self.timer.stop()
@@ -452,8 +458,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timer.stop()
 
         next_frame = self.current_frame + self.jump_frames
-        if next_frame > self.video_handler.video_length:
-            next_frame = self.video_handler.video_length
+        if next_frame > self.video_handler.video_length-1:
+            next_frame = self.video_handler.video_length-1
             pass
         else:
             self.video_handler.video_handler.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
@@ -470,7 +476,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timer.stop()
 
         previous_frame = self.current_frame - self.jump_frames
-        if previous_frame < 1:
+        if previous_frame < 0:
             previous_frame = 1
             pass
         else:
@@ -484,10 +490,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.displayImage.update_view()
         self.current_frame = frame_number
         self.frameLabel.setText(
-            'Frame : ' + str(int(self.current_frame)) + '/' + str(self.video_handler.video_length))
+            'Frame : ' + str(int(self.current_frame)+1) + '/' + str(self.video_handler.video_length))
+        
+        self.slider_Bottom.blockSignals(True)
+        self.slider_Bottom.setValue(frame_number+1)
+        self.slider_Bottom.blockSignals(False)
 
 
-    # def slidervaluechange(self):
+    def slidervaluechange(self):
+        pass
+    
+    def mouseReleaseEvent(self, event):
+        print('hi')
     #     """
     #     this functions read the slider, updates the view and then updates the slider according
     #     to the frame that is being displayed. Everything occurs in a new thread, so it is usually
