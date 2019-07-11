@@ -2,6 +2,7 @@ import os
 import sys
 import cv2
 import numpy as np
+import pandas as pd
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from multiprocessing import freeze_support
@@ -139,7 +140,7 @@ class VideoInformation:
         self.playbackspeed = self.video_fps
         self.video_exist_landmarks = None
         self.video_landmarks_filename = None
-        self.video_landmarks = None
+        self.video_landmarks_DF = None
         
         self.grabbed = False
         self.frame = None
@@ -230,6 +231,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slider_Bottom.setTickInterval(1)
         self.slider_Bottom.setEnabled(False)
         self.slider_Bottom.valueChanged.connect(self.slidervaluechange)
+        self.slider_Bottom.sliderReleased.connect(self.slidervaluefinal)
 
         # Status Bar _ Bottom - Show the current frame number
         self.frameLabel = QtWidgets.QLabel('')
@@ -423,10 +425,26 @@ class MainWindow(QtWidgets.QMainWindow):
             self.video_handler = VideoInformation(name)  # read the video
             success, image = self.video_handler.read()  # get the first frame
             if success:  # if the frame exists then show the image
+                # video was successfully loaded and will be presented to the user, now we will verify if a csv file with
+                # with the same name as the video exits. This file should contain the landmark and bounding box
+                # information
+                cvs_file_name = name[:-3] + 'csv'
+                if os.path.exists(cvs_file_name):
+                    self.video_handler.video_landmarks_filename = cvs_file_name
+                    try:
+                        self.video_handler.video_landmarks_DF = pd.read_csv(self.video_handler.video_landmarks_filename)
+                        # self.video_handler.video_landmarks_DF.set_index('Frame_number', inplace=True)
+                    except ValueError:
+                        QtWidgets.QMessageBox.critical(0, "Error", "Landmark file appears to exist but cannot be loaded")
+                        self.video_handler.video_landmarks_filename = None
+                        self.video_handler.video_landmarks_DF = None
+
                 self.updateviewer(image, 0)
                 self.slider_Bottom.setMinimum(1)
                 self.slider_Bottom.setMaximum(self.video_handler.video_length)
                 self.slider_Bottom.setEnabled(True)
+
+
 
 
     def playvideo(self):
@@ -477,7 +495,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         previous_frame = self.current_frame - self.jump_frames
         if previous_frame < 0:
-            previous_frame = 1
+            previous_frame = 0
             pass
         else:
             self.video_handler.video_handler.set(cv2.CAP_PROP_POS_FRAMES, previous_frame)
@@ -487,6 +505,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def updateviewer(self, image, frame_number):
         self.displayImage._opencvimage = image
+        if self.video_handler.video_landmarks_DF is not None:
+            try:
+                frame_information = self.video_handler.video_landmarks_DF.loc[self.video_handler.video_landmarks_DF['Frame_number'] == frame_number].values
+            except ValueError:
+                frame_information = []
+
+            if len(frame_information) > 0:
+                shape = np.array([frame_information[0][6:]])
+                shape = np.reshape(shape.astype(np.int), (-1, 2))
+                self.displayImage._shape = shape
+
         self.displayImage.update_view()
         self.current_frame = frame_number
         self.frameLabel.setText(
@@ -496,45 +525,26 @@ class MainWindow(QtWidgets.QMainWindow):
         self.slider_Bottom.setValue(frame_number+1)
         self.slider_Bottom.blockSignals(False)
 
-
     def slidervaluechange(self):
-        pass
+        if self.timer.isActive():  # verify is the video is running
+            # top video playback before moving slider
+            self.timer.stop()
+
+        # get slider position and update frame number
+        slider_position = self.slider_Bottom.value()
+        self.current_frame = slider_position-1
+        self.frameLabel.setText(
+            'Frame : ' + str(int(self.current_frame) + 1) + '/' + str(self.video_handler.video_length))
+
+        self.is_slider_moving = True
+
+    def slidervaluefinal(self):
+        # adjust view only when the slider reaches its final position
+        self.video_handler.video_handler.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame)
+        success, image = self.video_handler.read()
+        if success:
+            self.updateviewer(image, self.current_frame)
     
-    def mouseReleaseEvent(self, event):
-        print('hi')
-    #     """
-    #     this functions read the slider, updates the view and then updates the slider according
-    #     to the frame that is being displayed. Everything occurs in a new thread, so it is usually
-    #     is slow as firing up and endings threads takes time. However, this is the best solution to
-    #     prevent the UI from frozen, as the process of reading 'certain' frames from a cv2 video object
-    #     is very slow and blocking
-    #     """
-    #     if self.timer.isActive():  # verify is the video is running
-    #         # top video playback before moving slider
-    #         self.timer.stop()
-    #
-    #     # read slider value from slider
-    #     slider_value = self.slider_Bottom.value()
-    #     # move the class that updates the viewer and slider to a new thread
-    #     self.class_slider.moveToThread(self.thread_slider)
-    #     # star the thread
-    #     self.thread_slider.start()
-    #     # update the view, pass the slider position to the function
-    #     self.thread_slider.started.connect(lambda: self.class_slider.updateviewer(slider_value))
-    #     # if the view was successfully updated, update the slider position
-    #     self.class_slider.frame_number.connect(self.updateviwefromslider)
-    #     # end the thread
-    #     self.class_slider.finished.connect(self.thread_slider.quit)
-    #
-    # @pyqtSlot(int)
-    # def updateviwefromslider(self, frame_number):
-    #     if frame_number is not None:
-    #         self.current_frame = frame_number - 1
-    #         self.frameLabel.setText(
-    #             'Frame : ' + str(int(self.current_frame) + 1) + '/' + str(self.video_handler.video_length))
-    #         #self.slider_Bottom.blockSignals(True)
-    #         self.slider_Bottom.setValue(int(self.current_frame) + 1)
-    #         #self.slider_Bottom.blockSignals(False)
 
 
 

@@ -146,7 +146,7 @@ def get_landmark_size(shape):
     return size_landmarks
     
 
-def mark_picture(image, shape, circle_left, circle_right, points = None, size_landmarks = None):
+def mark_picture(image: object, shape: object, circle_left: object, circle_right: object, points: object = None, size_landmarks: object = None) -> object:
     #function to draw on the image the landmaks, iris circles and lines
     
     h,w,_=image.shape
@@ -163,8 +163,7 @@ def mark_picture(image, shape, circle_left, circle_right, points = None, size_la
             cv2.line(image,points[4],points[5],(0,255,0),4)            
 
 
-    #draw 68 landmark points
-    aux=1
+    # draw 68 landmark points
     if size_landmarks is None:
         if shape[36,1]!=-1 and shape[39,1]!=-1:
             size_landmarks = np.round(0.025*np.sqrt((shape[39,0]-shape[36,0])**2 + (shape[39,1]-shape[36,1])**2),0)
@@ -173,58 +172,58 @@ def mark_picture(image, shape, circle_left, circle_right, points = None, size_la
             size_landmarks = np.round(0.025*np.sqrt((shape[42,0]-shape[45,0])**2 + (shape[42,1]-shape[45,1])**2),0)
             size_landmarks = int(np.floor(size_landmarks)) 
 
-
-    for (x,y) in shape:
-        if x>0:
-            #mark_size=int(w/180)
-            #if mark_size>4: mark_size=4
-            #size_landmarks = 4
+    aux = 1
+    for (x, y) in shape:
+        if x > 0:
+            # mark_size=int(w/180)
+            # if mark_size>4: mark_size=4
+            # size_landmarks = 4
             if aux == 62 or aux == 64 or aux == 38 or aux == 39 or aux == 44 or aux == 45:
-                cv2.circle(image, (x,y), size_landmarks , (0,255,255),-1)
-            elif aux == 63 :
-                cv2.circle(image, (x,y), size_landmarks+1 , (0,255,255),-1)
-            elif aux == 67 :
-                cv2.circle(image, (x,y), size_landmarks+1 , (0,0,255),-1)
+                cv2.circle(image, (x, y), size_landmarks, (0, 255, 255), -1)
+            elif aux == 63:
+                cv2.circle(image, (x, y), size_landmarks+1, (0, 255, 255), -1)
+            elif aux == 67:
+                cv2.circle(image, (x, y), size_landmarks+1, (0, 0, 255), -1)
             else:
-                cv2.circle(image, (x,y), size_landmarks , (0,0,255),-1)
-            cv2.putText(image, str(aux), (x-2,y-2), cv2.FONT_HERSHEY_DUPLEX, 0.125*size_landmarks, (0,0,0), 1)
+                cv2.circle(image, (x, y), size_landmarks, (0, 0, 255), -1)
+            cv2.putText(image, str(aux), (x-2, y-2), cv2.FONT_HERSHEY_DUPLEX, 0.125*size_landmarks, (0, 0, 0), 1)
             #           
         aux +=1
-    
-    #draw left iris
-    if circle_left[2]>0:
-        if h < 1000: #image is small, make circle of 1 pixel
-            cv2.circle(image, 
-               tuple([int(circle_left[0]),
-               int(circle_left[1])]),
-               int(circle_left[2]),(0,255,0),1)
-        else:  #image is large, make circle of 2 pixel
-            cv2.circle(image, 
-               tuple([int(circle_left[0]),
-               int(circle_left[1])]),
-               int(circle_left[2]),(0,255,0),2)            
-    
-        cv2.circle(image, 
-               tuple([int(circle_left[0]),
-               int(circle_left[1])]),
-               int(circle_left[2]/4),(0,255,0),-1)
-    
-    #draw right iris
-    if circle_right[2]>0:
-        if h < 1000: #image is small, make circle of 1 pixel
-            cv2.circle(image, 
-               tuple([int(circle_right[0]),
-               int(circle_right[1])]),
-               int(circle_right[2]),(0,255,0),1)
-        else: #image is large, make circle of 2 pixel
-            cv2.circle(image, 
-               tuple([int(circle_right[0]),
-               int(circle_right[1])]),
-               int(circle_right[2]),(0,255,0),2)
-        cv2.circle(image, 
-               tuple([int(circle_right[0]),
-               int(circle_right[1])]),
-               int(circle_right[2]/4),(0,255,0),-1)
+
+    # #draw left iris
+    # if circle_left[2]>0:
+    #     if h < 1000: #image is small, make circle of 1 pixel
+    #         cv2.circle(image,
+    #            tuple([int(circle_left[0]),
+    #            int(circle_left[1])]),
+    #            int(circle_left[2]),(0,255,0),1)
+    #     else:  #image is large, make circle of 2 pixel
+    #         cv2.circle(image,
+    #            tuple([int(circle_left[0]),
+    #            int(circle_left[1])]),
+    #            int(circle_left[2]),(0,255,0),2)
+    #
+    #     cv2.circle(image,
+    #            tuple([int(circle_left[0]),
+    #            int(circle_left[1])]),
+    #            int(circle_left[2]/4),(0,255,0),-1)
+    #
+    # #draw right iris
+    # if circle_right[2]>0:
+    #     if h < 1000: #image is small, make circle of 1 pixel
+    #         cv2.circle(image,
+    #            tuple([int(circle_right[0]),
+    #            int(circle_right[1])]),
+    #            int(circle_right[2]),(0,255,0),1)
+    #     else: #image is large, make circle of 2 pixel
+    #         cv2.circle(image,
+    #            tuple([int(circle_right[0]),
+    #            int(circle_right[1])]),
+    #            int(circle_right[2]),(0,255,0),2)
+    #     cv2.circle(image,
+    #            tuple([int(circle_right[0]),
+    #            int(circle_right[1])]),
+    #            int(circle_right[2]/4),(0,255,0),-1)
     
     return image
 

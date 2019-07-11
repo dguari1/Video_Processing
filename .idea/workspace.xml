@@ -23,12 +23,21 @@
     <select />
   </component>
   <component name="FileEditorManager">
-    <leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ImageViewerandProcess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="32" column="32" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="53" />
+            <state relative-caret-position="8025">
+              <caret line="494" column="79" selection-start-line="494" selection-start-column="71" selection-end-line="494" selection-end-column="79" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utilities.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="518">
+              <caret line="187" column="71" selection-start-line="187" selection-start-column="71" selection-end-line="187" selection-end-column="71" />
             </state>
           </provider>
         </entry>
@@ -36,14 +45,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Video_Processing.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="460" column="23" lean-forward="true" selection-start-line="460" selection-start-column="23" selection-end-line="460" selection-end-column="23" />
+            <state relative-caret-position="354">
+              <caret line="430" column="49" lean-forward="true" selection-start-line="430" selection-start-column="49" selection-end-line="430" selection-end-column="49" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <element signature="e#518#2395#0" />
-                <element signature="e#2419#3274#0" />
-                <element signature="e#3321#4504#0" />
-                <element signature="e#17603#17819#0" />
+                <element signature="e#8220#15488#0" />
               </folding>
             </state>
           </provider>
@@ -52,7 +58,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Video_Processing2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
+            <state relative-caret-position="7446">
               <caret line="452" column="16" selection-start-line="452" selection-start-column="8" selection-end-line="452" selection-end-column="16" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
@@ -84,21 +90,22 @@
       <list>
         <option value="$PROJECT_DIR$/test_mediaplayer.py" />
         <option value="$PROJECT_DIR$/Video_Processing2.py" />
+        <option value="$PROJECT_DIR$/utilities.py" />
         <option value="$PROJECT_DIR$/Video_Processing.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="-7" />
-    <option name="width" value="974" />
-    <option name="height" value="1047" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="943" />
+    <option name="y" value="3" />
+    <option name="width" value="984" />
+    <option name="height" value="512" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -119,6 +126,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -233,18 +241,20 @@
       <option name="presentableId" value="Default" />
       <updated>1561657050031</updated>
       <workItem from="1561657054382" duration="48499000" />
+      <workItem from="1562770435428" duration="3773000" />
+      <workItem from="1562863582339" duration="5722000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="48499000" />
+    <option name="totallyTimeSpent" value="57994000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="0" width="974" height="1047" extended-state="0" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.21115974" />
+      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.10714286" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Database Changes" order="0" />
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.3297491" />
@@ -254,7 +264,7 @@
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" />
-      <window_info active="true" anchor="bottom" id="Run" order="8" sideWeight="0.4989059" visible="true" weight="0.27352297" />
+      <window_info active="true" anchor="bottom" id="Run" order="8" sideWeight="0.4989059" visible="true" weight="0.23943663" />
       <window_info anchor="bottom" id="Debug" order="9" weight="0.43608123" />
       <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
@@ -279,7 +289,7 @@
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Video_Processing$Video_Processing.coverage" NAME="Video_Processing Coverage Results" MODIFIED="1562704306914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Video_Processing$Video_Processing.coverage" NAME="Video_Processing Coverage Results" MODIFIED="1562872769311" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Video_Processing$test_mediaplayer.coverage" NAME="test_mediaplayer Coverage Results" MODIFIED="1562358729355" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Video_Processing$Video_Processing2.coverage" NAME="Video_Processing2 Coverage Results" MODIFIED="1562682087115" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
@@ -364,9 +374,12 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Video_Processing_old.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/Video_Processing2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
+        <state relative-caret-position="7446">
           <caret line="452" column="16" selection-start-line="452" selection-start-column="8" selection-end-line="452" selection-end-column="16" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
@@ -374,26 +387,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ImageViewerandProcess.py">
+    <entry file="file://$PROJECT_DIR$/utilities.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="32" column="32" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="53" />
+        <state relative-caret-position="518">
+          <caret line="187" column="71" selection-start-line="187" selection-start-column="71" selection-end-line="187" selection-end-column="71" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Video_Processing_old.py">
-      <provider selected="true" editor-type-id="text-editor" />
+    <entry file="file://$PROJECT_DIR$/ImageViewerandProcess.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8025">
+          <caret line="494" column="79" selection-start-line="494" selection-start-column="71" selection-end-line="494" selection-end-column="79" />
+        </state>
+      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Video_Processing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="460" column="23" lean-forward="true" selection-start-line="460" selection-start-column="23" selection-end-line="460" selection-end-column="23" />
+        <state relative-caret-position="354">
+          <caret line="430" column="49" lean-forward="true" selection-start-line="430" selection-start-column="49" selection-end-line="430" selection-end-column="49" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <element signature="e#518#2395#0" />
-            <element signature="e#2419#3274#0" />
-            <element signature="e#3321#4504#0" />
-            <element signature="e#17603#17819#0" />
+            <element signature="e#8220#15488#0" />
           </folding>
         </state>
       </provider>
