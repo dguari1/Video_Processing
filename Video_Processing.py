@@ -314,7 +314,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # fill the top toolbar
 
-        process_current_frame =  QtWidgets.QAction('Process current frame', self)
+        process_current_frame = QtWidgets.QAction('Process current frame', self)
         process_current_frame.setIcon(QtGui.QIcon('./icons/facial-analysis.png'))
         # process_current_frame.connect(self.match_iris)
 
@@ -352,6 +352,7 @@ class MainWindow(QtWidgets.QMainWindow):
         play_action.setShortcut('Shift+S')
         play_action.setIcon(QtGui.QIcon('./icons/play-arrow.png'))
         play_action.triggered.connect(self.playvideo)
+        #play_action.setToolTip(self, 'FPS ='+str(self.video_handler.playbackspeed))
 
         stop_action = QtWidgets.QAction('Stop', self)
         stop_action.setShortcut('Shift+Z')

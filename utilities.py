@@ -146,12 +146,12 @@ def get_landmark_size(shape):
     return size_landmarks
     
 
-def mark_picture(image: object, shape: object, circle_left: object, circle_right: object, points: object = None, size_landmarks: object = None) -> object:
-    #function to draw on the image the landmaks, iris circles and lines
+def mark_picture(image: object, shape: object, points: object = None, size_landmarks: object = None) -> object:
+    # function to draw on the image the landmarks
     
-    h,w,_=image.shape
+    h, w, _=image.shape
     
-    #if requested, then draw a two lines to divide the face
+    # if requested, then draw a two lines to divide the face
     if points is not None:
         if h < 1000: #image is small, make lines of 2 pixel
             cv2.line(image,points[0],points[1],(0,255,0),2)        
@@ -162,14 +162,13 @@ def mark_picture(image: object, shape: object, circle_left: object, circle_right
             cv2.line(image,points[2],points[3],(0,255,0),4)
             cv2.line(image,points[4],points[5],(0,255,0),4)            
 
-
     # draw 68 landmark points
     if size_landmarks is None:
-        if shape[36,1]!=-1 and shape[39,1]!=-1:
-            size_landmarks = np.round(0.025*np.sqrt((shape[39,0]-shape[36,0])**2 + (shape[39,1]-shape[36,1])**2),0)
+        if shape[36, 1] != -1 and shape[39, 1] != -1:
+            size_landmarks = np.round(0.025*np.sqrt((shape[39, 0]-shape[36, 0])**2 + (shape[39, 1]-shape[36, 1])**2), 0)
             size_landmarks = int(np.floor(size_landmarks))
         else:
-            size_landmarks = np.round(0.025*np.sqrt((shape[42,0]-shape[45,0])**2 + (shape[42,1]-shape[45,1])**2),0)
+            size_landmarks = np.round(0.025*np.sqrt((shape[42, 0]-shape[45, 0])**2 + (shape[42, 1]-shape[45, 1])**2), 0)
             size_landmarks = int(np.floor(size_landmarks)) 
 
     aux = 1
