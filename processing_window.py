@@ -17,8 +17,8 @@ from PyQt5.QtCore import QFile, QTextStream
 
 
 class ProcessingWindow(QtWidgets.QWidget):
-    def __init__(self):
-        super(ProcessingWindow, self).__init__()
+    def __init__(self, parent=None):
+        super(ProcessingWindow, self).__init__(parent)
         
         self.setWindowTitle('Processing Frames')
 
@@ -38,9 +38,9 @@ class ProcessingWindow(QtWidgets.QWidget):
 
         boundingbox = QtWidgets.QGroupBox('Bounding Box')
         boundingbox.setStyleSheet(self.getStyleSheet('./include/GroupBoxStyle.qss'))
-        boundingboxLayout = QtWidgets.QGridLayout()
+        self.boundingboxLayout = QtWidgets.QGridLayout()
         #RestLayout.addWidget(self.Rest, 0, 0, 1, 1)
-        boundingbox.setLayout(boundingboxLayout)
+        boundingbox.setLayout(self.boundingboxLayout)
 
         processframes = QtWidgets.QGroupBox('Process Frames')
         processframes.setStyleSheet(self.getStyleSheet('./include/GroupBoxStyle.qss'))
@@ -58,6 +58,9 @@ class ProcessingWindow(QtWidgets.QWidget):
         # text_CE_content = 'Distance from midline vertical / lower lip vermillion junction point to the oral commissure'
         # self._help_CE.clicked.connect(lambda: self.push_help_CE(pixmap_CE, text_CE_title, text_CE_content))
         # self._help_CE.setIconSize(QtCore.QSize(20, 20))
+        
+        addbutton = QtWidgets.QPushButton('Push')
+        addbutton.clicked.connect(self.addNewRow)
 
         layout = QtWidgets.QGridLayout()
         layout.addWidget(spacerv, 0, 0)
@@ -65,7 +68,7 @@ class ProcessingWindow(QtWidgets.QWidget):
         layout.addWidget(spacerv, 2, 0)
         layout.addWidget(processframes, 3, 0, 1, 1)
         layout.addWidget(spacerh, 4, 0)
-        # layout.addWidget(self._label0c, 0, 6, 1, 1)
+        layout.addWidget(addbutton, 5, 0, 1, 1)
         # layout.addWidget(spacerh, 0, 7)
         # layout.addWidget(self._label0d, 0, 8, 1, 1)
 
@@ -82,6 +85,22 @@ class ProcessingWindow(QtWidgets.QWidget):
 
     def push_help_CE(self, text_title='', text_content=''):
         pass
+    
+    def addNewRow(self):
+        self.pushButton = QtWidgets.QPushButton('I am in Test widget')
+        self.boundingboxLayout.addWidget(Test(widget = self.pushButton))
+
+class Test(QtWidgets.QWidget):
+  def __init__( self, widget, parent=None):
+      super(Test, self).__init__(parent)
+
+      #self.pushButton = QtWidgets.QPushButton('I am in Test widget')
+
+      layout = QtWidgets.QHBoxLayout()
+      layout.addWidget(widget)
+      self.setLayout(layout)
+      
+      #return self
 
         
 if __name__ == '__main__':
