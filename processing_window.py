@@ -30,13 +30,16 @@ class ProcessingWindow(QtWidgets.QWidget):
         self.show()
 
     def initUI(self):
+
+        newfont = QtGui.QFont("Times", 12)
+
         spacerh = QtWidgets.QWidget(self)
         spacerh.setFixedSize(10, 0)
 
         spacerv = QtWidgets.QWidget(self)
         spacerv.setFixedSize(0, 10)
 
-        boundingbox = QtWidgets.QGroupBox('Bounding Box')
+        boundingbox = QtWidgets.QGroupBox('')
         boundingbox.setStyleSheet(self.getStyleSheet('./include/GroupBoxStyle.qss'))
         self.boundingboxLayout = QtWidgets.QGridLayout()
         #RestLayout.addWidget(self.Rest, 0, 0, 1, 1)
@@ -72,7 +75,53 @@ class ProcessingWindow(QtWidgets.QWidget):
         # layout.addWidget(spacerh, 0, 7)
         # layout.addWidget(self._label0d, 0, 8, 1, 1)
 
+
+        label_allframes = QtWidgets.QLabel('All Frames')
+        label_allframes.setFont(newfont)
+        label_allframes.setFixedWidth(100)
+
+        label_firstframes = QtWidgets.QLabel('First Frame')
+        label_firstframes.setFont(newfont)
+        label_firstframes.setFixedWidth(100)
+
+        label_frames = QtWidgets.QLabel('Frames')
+        label_frames.setFont(newfont)
+        label_frames.setFixedWidth(100)
+
+        self.allframestick_boundingbox = QtWidgets.QCheckBox('')
+        self.allframestick_boundingbox.setChecked(False)
+        self.allframestick_boundingbox.setFixedWidth(25)
+
+        self.firstframetick_boundingbox = QtWidgets.QCheckBox('')
+        self.firstframetick_boundingbox.setChecked(False)
+        self.firstframetick_boundingbox.setFixedWidth(25)
+
+        self.framelistboundingbox = QtWidgets.QLineEdit()
+        #self.framelistboundingbox.setFixedWidth(100)
+        self.framelistboundingbox.setMinimumWidth(75)
+        self.framelistboundingbox.setFixedHeight(25)
+        self.framelistboundingbox.setFont(QtGui.QFont("Times", 8))
+
+        regex = QtCore.QRegExp("([0-9]*(,{1})?)+")
+        regval = QtGui.QRegExpValidator(regex)
+        self.framelistboundingbox.setValidator(regval)
+
+        self.boundingboxLayout.addWidget(label_allframes, 0, 0, 1, 1)
+        self.boundingboxLayout.addWidget(self.allframestick_boundingbox, 0, 1, 1, 1)
+        self.boundingboxLayout.addWidget(label_firstframes, 1, 0, 1, 1)
+        self.boundingboxLayout.addWidget(self.firstframetick_boundingbox, 1, 1, 1, 1)
+        self.boundingboxLayout.addWidget(label_frames, 2, 0, 1, 1)
+        self.boundingboxLayout.addWidget(self.framelistboundingbox, 2, 1, 1, 1)
+
+
+
         self.setLayout(layout)
+
+
+    def addNewRow(self):
+        self.pushButton = QtWidgets.QPushButton('I am in Test widget')
+        self.boundingboxLayout.addWidget(Test(widget = self.pushButton))
+
 
     # this function read the style sheet used to presents the GroupBox,
     # it is located in .\include\GroupBoxStyle.qss
@@ -86,9 +135,7 @@ class ProcessingWindow(QtWidgets.QWidget):
     def push_help_CE(self, text_title='', text_content=''):
         pass
     
-    def addNewRow(self):
-        self.pushButton = QtWidgets.QPushButton('I am in Test widget')
-        self.boundingboxLayout.addWidget(Test(widget = self.pushButton))
+
 
 class Test(QtWidgets.QWidget):
   def __init__( self, widget, parent=None):
