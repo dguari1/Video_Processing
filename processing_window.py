@@ -102,7 +102,7 @@ class ProcessingWindow(QtWidgets.QWidget):
         self.framelistboundingbox.setFixedHeight(25)
         self.framelistboundingbox.setFont(QtGui.QFont("Times", 8))
 
-        regex = QtCore.QRegExp("([0-9]*(,{1})?)+")
+        regex = QtCore.QRegExp("^(\d+(,\d+)*)?$")
         regval = QtGui.QRegExpValidator(regex)
         self.framelistboundingbox.setValidator(regval)
 
