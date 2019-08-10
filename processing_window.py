@@ -226,7 +226,7 @@ if __name__ == '__main__':
 #    GUI = ProcessingWindow()
 #    GUI.show()
 #    app.exec_()
-#    
+#
     if not QtWidgets.QApplication.instance():
         app = QtWidgets.QApplication(sys.argv)
     else:

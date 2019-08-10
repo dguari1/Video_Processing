@@ -545,8 +545,6 @@ class MainWindow(QtWidgets.QMainWindow):
         success, image = self.video_handler.read()
         if success:
             self.updateviewer(image, self.current_frame)
-    
-
 
 
 if __name__ == '__main__':
